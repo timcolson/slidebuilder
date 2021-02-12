@@ -8,12 +8,10 @@ import java.util.List;
 
 public class Reader {
     public static void main(String[] args) {
-//        File currentDirectory = new File(".");
 
-        var filename = "./source1.pptx";
-//        filename = "DEMO-ONLY_01_Slides_Epi.pptx";
+        var filename = "source1-out";
         var r = new Reader();
-        System.out.println("Read in a PPTX file: " + filename);
+        System.out.println("Read in a PPTX file: " + filename + ".pptx");
         try {
             r.read(filename);
         } catch (FileNotFoundException e) {
@@ -26,13 +24,17 @@ public class Reader {
     private void read(String file) throws IOException {
         System.out.println("Reading: " + file);
 
-        XMLSlideShow ppt = new XMLSlideShow(new FileInputStream(file));
+        XMLSlideShow ppt = new XMLSlideShow(new FileInputStream("./" + file + ".pptx"));
 
         List<XSLFSlide> slides = ppt.getSlides();
 
         // Look at all the titles!
         for (XSLFSlide slide : slides) {
-            System.out.println("slide = " + slide.getTitle());
+            System.out.println("slide = "
+                    + slide.getTitle()
+                    + "; name="
+                    + slide.getSlideName()
+            );
         }
 
         // Extract all image names
@@ -71,11 +73,11 @@ public class Reader {
 
 
         // Create an output object
-        File targetFile = new File("./target1.pptx");
+        File targetFile = new File("./target/" + file + "-out.pptx");
         FileOutputStream out = new FileOutputStream(targetFile);
         // save modified PPT file
         ppt.write(out);
-        System.out.println("Wrote to target1.pptx!");
+        System.out.println("Wrote to ./target/" + file + "-out.pptx !");
         out.close();
 
 
