@@ -40,7 +40,12 @@ public class PowerPointHelper {
     public void createPresentation(String fileLocation) throws IOException {
         // Create presentation
         XMLSlideShow ppt = new XMLSlideShow();
+        buildSlideDeck(ppt);
+        // Save presentation
+        savePresentation(ppt, fileLocation);
+    }
 
+    private void buildSlideDeck(XMLSlideShow ppt) {
         XSLFSlideMaster defaultMaster = ppt.getSlideMasters().get(0);
 
         // Retriving the slide layout
@@ -60,7 +65,12 @@ public class PowerPointHelper {
 
         // Add Image
         ClassLoader classLoader = getClass().getClassLoader();
-        byte[] pictureData = IOUtils.toByteArray(new FileInputStream(classLoader.getResource("logo-leaf.png").getFile()));
+        byte[] pictureData = new byte[0];
+        try {
+            pictureData = IOUtils.toByteArray(new FileInputStream(classLoader.getResource("logo-leaf.png").getFile()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         XSLFPictureData pd = ppt.addPicture(pictureData, PictureData.PictureType.PNG);
         XSLFPictureShape picture = slide1.createPicture(pd);
@@ -114,13 +124,13 @@ public class PowerPointHelper {
         XSLFSlide slide4 = ppt.createSlide();
         createTable(slide4);
 
+    }
+
+    private void savePresentation(XMLSlideShow ppt, String fileLocation) throws IOException {
         // Save presentation
         FileOutputStream out = new FileOutputStream(fileLocation);
         ppt.write(out);
         out.close();
-
-        // Closing presentation
-        ppt.close();
     }
 
     /**

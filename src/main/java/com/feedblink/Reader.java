@@ -9,7 +9,7 @@ import java.util.List;
 public class Reader {
     public static void main(String[] args) {
 
-        var filename = "source1-out";
+        var filename = "source1";
         var r = new Reader();
         System.out.println("Read in a PPTX file: " + filename + ".pptx");
         try {
@@ -20,20 +20,44 @@ public class Reader {
             e.printStackTrace();
         }
     }
+    private String extractNotes(XSLFSlide slide) {
+        var notes  = "";
+        try {
+            XSLFNotes mynotes = slide.getNotes();
+            for (XSLFShape shape : mynotes) {
+                if (shape instanceof XSLFTextShape) {
+                    XSLFTextShape txShape = (XSLFTextShape) shape;
+                    for (XSLFTextParagraph xslfParagraph : txShape.getTextParagraphs()) {
+                        //System.out.println(xslfParagraph.getText());
+                        notes += xslfParagraph.getText() + "##";
+                    }
+                }
+            }
+        } catch (Exception e) {
 
+        }
+        return notes;
+
+    }
     private void read(String file) throws IOException {
         System.out.println("Reading: " + file);
 
         XMLSlideShow ppt = new XMLSlideShow(new FileInputStream("./" + file + ".pptx"));
 
         List<XSLFSlide> slides = ppt.getSlides();
-
+        System.out.println("## Slide List ##");
+        System.out.println("Filename,N,Name,Title,RelID,Audio,Notes,Citation,Update");
         // Look at all the titles!
+        int i = 0;
         for (XSLFSlide slide : slides) {
-            System.out.println("slide = "
-                    + slide.getTitle()
-                    + "; name="
-                    + slide.getSlideName()
+
+            var stringNotes = extractNotes(slide);
+            System.out.println(""
+                    + slide.getSlideNumber() + ","
+                    + slide.getSlideName() + ","
+                    + slide.getTitle() + ","
+                    + stringNotes + " ==end"
+
             );
         }
 
@@ -50,15 +74,19 @@ public class Reader {
         }
         
         // Change Slide Order
-        XSLFSlide slide = slides.get(2);
-        ppt.setSlideOrder(slide, 1);
+        XSLFSlide slide = slides.get(1);
+        ppt.setSlideOrder(slide, 0);
 
         // Add a new slide!
         // Get the slide master object
+        for (XSLFSlideMaster m : ppt.getSlideMasters()) {
+            System.out.println("master = " + m);
+        }
         XSLFSlideMaster slideMaster = ppt.getSlideMasters().get(0);
 
+
         for( XSLFSlideLayout layout :  slideMaster.getSlideLayouts()) {
-            System.out.println("layout = " + layout);
+            System.out.println("layout name = " + layout.getName());
         }
         // Trouble getting by name, so just getting the first slide layout
         XSLFSlideLayout titleLayout = slideMaster.getSlideLayouts()[0];
@@ -71,6 +99,7 @@ public class Reader {
         //setting the title init
         title1.setText("Kilroy was here - title!");
 
+        slide4.getXmlObject().getCSld().setName("TC-JavaName");
 
         // Create an output object
         File targetFile = new File("./target/" + file + "-out.pptx");
